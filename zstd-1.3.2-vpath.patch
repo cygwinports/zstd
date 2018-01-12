@@ -1,0 +1,96 @@
+--- origsrc/zstd-1.3.2/tests/playTests.sh	2017-10-08 11:41:28.000000000 +0200
++++ src/zstd-1.3.2/tests/playTests.sh	2017-10-22 09:21:38.544690900 +0200
+@@ -291,26 +291,26 @@ $ECHO "- test with raw dict (content onl
+ ./datagen -g1M | $ZSTD -D tmpDict | $ZSTD -D tmpDict -dvq | $MD5SUM > tmp2
+ $DIFF -q tmp1 tmp2
+ $ECHO "- Create first dictionary "
+-TESTFILE=../programs/zstdcli.c
+-$ZSTD --train *.c ../programs/*.c -o tmpDict
++TESTFILE=$(realpath ../programs/zstdcli.c)
++$ZSTD --train $(realpath *.c ../programs/*.c) -o tmpDict
+ cp $TESTFILE tmp
+ $ZSTD -f tmp -D tmpDict
+ $ZSTD -d tmp.zst -D tmpDict -fo result
+ $DIFF $TESTFILE result
+ $ECHO "- Create second (different) dictionary "
+-$ZSTD --train *.c ../programs/*.c ../programs/*.h -o tmpDictC
++$ZSTD --train $(realpath *.c ../programs/*.c ../programs/*.h) -o tmpDictC
+ $ZSTD -d tmp.zst -D tmpDictC -fo result && die "wrong dictionary not detected!"
+ $ECHO "- Create dictionary with short dictID"
+-$ZSTD --train *.c ../programs/*.c --dictID=1 -o tmpDict1
++$ZSTD --train $(realpath *.c ../programs/*.c) --dictID=1 -o tmpDict1
+ cmp tmpDict tmpDict1 && die "dictionaries should have different ID !"
+ $ECHO "- Create dictionary with wrong dictID parameter order (must fail)"
+-$ZSTD --train *.c ../programs/*.c --dictID -o 1 tmpDict1 && die "wrong order : --dictID must be followed by argument "
++$ZSTD --train $(realpath *.c ../programs/*.c) --dictID -o 1 tmpDict1 && die "wrong order : --dictID must be followed by argument "
+ $ECHO "- Create dictionary with size limit"
+-$ZSTD --train *.c ../programs/*.c -o tmpDict2 --maxdict=4K -v
++$ZSTD --train $(realpath *.c ../programs/*.c) -o tmpDict2 --maxdict=4K -v
+ $ECHO "- Create dictionary with small size limit"
+-$ZSTD --train *.c ../programs/*.c -o tmpDict3 --maxdict=1K -v
++$ZSTD --train $(realpath *.c ../programs/*.c) -o tmpDict3 --maxdict=1K -v
+ $ECHO "- Create dictionary with wrong parameter order (must fail)"
+-$ZSTD --train *.c ../programs/*.c -o tmpDict3 --maxdict -v 4K && die "wrong order : --maxdict must be followed by argument "
++$ZSTD --train $(realpath *.c ../programs/*.c) -o tmpDict3 --maxdict -v 4K && die "wrong order : --maxdict must be followed by argument "
+ $ECHO "- Compress without dictID"
+ $ZSTD -f tmp -D tmpDict1 --no-dictID
+ $ZSTD -d tmp.zst -D tmpDict -fo result
+@@ -344,19 +344,19 @@ $ECHO "\n**** cover dictionary tests ***
+ TESTFILE=../programs/zstdcli.c
+ ./datagen > tmpDict
+ $ECHO "- Create first dictionary"
+-$ZSTD --train-cover=k=46,d=8 *.c ../programs/*.c -o tmpDict
++$ZSTD --train-cover=k=46,d=8 $(realpath *.c ../programs/*.c) -o tmpDict
+ cp $TESTFILE tmp
+ $ZSTD -f tmp -D tmpDict
+ $ZSTD -d tmp.zst -D tmpDict -fo result
+ $DIFF $TESTFILE result
+ $ECHO "- Create second (different) dictionary"
+-$ZSTD --train-cover=k=56,d=8 *.c ../programs/*.c ../programs/*.h -o tmpDictC
++$ZSTD --train-cover=k=56,d=8 $(realpath *.c ../programs/*.c ../programs/*.h) -o tmpDictC
+ $ZSTD -d tmp.zst -D tmpDictC -fo result && die "wrong dictionary not detected!"
+ $ECHO "- Create dictionary with short dictID"
+-$ZSTD --train-cover=k=46,d=8 *.c ../programs/*.c --dictID=1 -o tmpDict1
++$ZSTD --train-cover=k=46,d=8 $(realpath *.c ../programs/*.c) --dictID=1 -o tmpDict1
+ cmp tmpDict tmpDict1 && die "dictionaries should have different ID !"
+ $ECHO "- Create dictionary with size limit"
+-$ZSTD --train-cover=steps=8 *.c ../programs/*.c -o tmpDict2 --maxdict=4K
++$ZSTD --train-cover=steps=8 $(realpath *.c ../programs/*.c) -o tmpDict2 --maxdict=4K
+ rm tmp*
+ 
+ $ECHO "\n**** legacy dictionary tests **** "
+@@ -364,19 +364,19 @@ $ECHO "\n**** legacy dictionary tests **
+ TESTFILE=../programs/zstdcli.c
+ ./datagen > tmpDict
+ $ECHO "- Create first dictionary"
+-$ZSTD --train-legacy=selectivity=8 *.c ../programs/*.c -o tmpDict
++$ZSTD --train-legacy=selectivity=8 $(realpath *.c ../programs/*.c) -o tmpDict
+ cp $TESTFILE tmp
+ $ZSTD -f tmp -D tmpDict
+ $ZSTD -d tmp.zst -D tmpDict -fo result
+ $DIFF $TESTFILE result
+ $ECHO "- Create second (different) dictionary"
+-$ZSTD --train-legacy=s=5 *.c ../programs/*.c ../programs/*.h -o tmpDictC
++$ZSTD --train-legacy=s=5 $(realpath *.c ../programs/*.c ../programs/*.h) -o tmpDictC
+ $ZSTD -d tmp.zst -D tmpDictC -fo result && die "wrong dictionary not detected!"
+ $ECHO "- Create dictionary with short dictID"
+-$ZSTD --train-legacy -s5 *.c ../programs/*.c --dictID=1 -o tmpDict1
++$ZSTD --train-legacy -s5 $(realpath *.c ../programs/*.c) --dictID=1 -o tmpDict1
+ cmp tmpDict tmpDict1 && die "dictionaries should have different ID !"
+ $ECHO "- Create dictionary with size limit"
+-$ZSTD --train-legacy -s9 *.c ../programs/*.c -o tmpDict2 --maxdict=4K
++$ZSTD --train-legacy -s9 $(realpath *.c ../programs/*.c) -o tmpDict2 --maxdict=4K
+ rm tmp*
+ 
+ 
+@@ -407,8 +407,8 @@ $ZSTD -t tmpSplit.* && die "bad file not
+ 
+ $ECHO "\n**** golden files tests **** "
+ 
+-$ZSTD -t -r files
+-$ZSTD -c -r files | $ZSTD -t
++$ZSTD -t -r $(realpath files/*)
++$ZSTD -c -r $(realpath files/*) | $ZSTD -t
+ 
+ 
+ $ECHO "\n**** benchmark mode tests **** "
