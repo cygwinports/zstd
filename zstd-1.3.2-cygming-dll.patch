@@ -8,12 +8,12 @@
 +	SHARED_PFX = cyg
 +	SHARED_EXT = dll.a
 +	SHARED_EXT_VER = -$(LIBVER_MAJOR).dll
-+	SONAME_FLAGS = -Wl,--out-implib,$@.$(SHARED_EXT)
++	SONAME_FLAGS = -Wl,--out-implib,libzstd.$(SHARED_EXT)
 +else ifneq (,$(filter Windows%,$(OS)))
 +	SHARED_PFX =
 +	SHARED_EXT = dll.a
 +	SHARED_EXT_VER = $(LIBVER_MAJOR).dll
-+	SONAME_FLAGS = -Wl,--out-implib,$@.$(SHARED_EXT)
++	SONAME_FLAGS = -Wl,--out-implib,libzstd.$(SHARED_EXT)
  else
  	SONAME_FLAGS = -Wl,-soname=libzstd.$(SHARED_EXT).$(LIBVER_MAJOR)
  	SHARED_EXT = so
@@ -49,13 +49,14 @@
  
  libzstd.pc:
  libzstd.pc: libzstd.pc.in
-@@ -164,9 +174,14 @@
+@@ -164,9 +174,15 @@
  	@$(INSTALL_DATA) libzstd.pc $(DESTDIR)$(PKGCONFIGDIR)/
  	@echo Installing libraries
  	@$(INSTALL_DATA) libzstd.a $(DESTDIR)$(LIBDIR)
 +ifneq (,$(filter Cygwin Windows%,$(OS)))
 +	@$(INSTALL_LIB) -d $(DESTDIR)$(DLLDIR)/
 +	$(INSTALL_LIB) $(SHARED_PFX)zstd$(SHARED_EXT_VER) $(DESTDIR)$(DLLDIR)/
++	$(INSTALL_DATA) libzstd.$(SHARED_EXT) $(DESTDIR)$(LIBDIR)/
 +else
  	@$(INSTALL_PROGRAM) $(LIBZSTD) $(DESTDIR)$(LIBDIR)
  	@ln -sf $(LIBZSTD) $(DESTDIR)$(LIBDIR)/libzstd.$(SHARED_EXT_MAJOR)
@@ -64,12 +65,13 @@
  	@echo Installing includes
  	@$(INSTALL_DATA) zstd.h $(DESTDIR)$(INCLUDEDIR)
  	@$(INSTALL_DATA) common/zstd_errors.h $(DESTDIR)$(INCLUDEDIR)
-@@ -177,8 +192,12 @@
+@@ -177,8 +193,13 @@
  uninstall:
  	@$(RM) $(DESTDIR)$(LIBDIR)/libzstd.a
  	@$(RM) $(DESTDIR)$(LIBDIR)/libzstd.$(SHARED_EXT)
 +ifneq (,$(filter Cygwin Windows%,$(OS)))
-+	$(RM) $(DESTDIR)$(DLLDIR)/$(SHARED_PFX)zstd$(SHARED_EXT_VER)
++	@$(RM) $(DESTDIR)$(DLLDIR)/$(SHARED_PFX)zstd$(SHARED_EXT_VER)
++	@$(RM) $(DESTDIR)$(LIBDIR)/libzstd.$(SHARED_EXT)
 +else
  	@$(RM) $(DESTDIR)$(LIBDIR)/libzstd.$(SHARED_EXT_MAJOR)
  	@$(RM) $(DESTDIR)$(LIBDIR)/$(LIBZSTD)
